@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+    spider:
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+        ports:
+            - "5566:80"
+        depends_on:
+            - spider-db
+            - spider-mailhog
+        volumes:
+            - ./site.conf:/etc/nginx/nginx.conf
+            - ./:/var/www/html:cached
+            - ./php.ini:/usr/local/etc/php/php.ini
+        environment:
+            - VIRTUAL_HOST=spider.man.com,*.spider.man.com
+            - VIRTUAL_PORT=80
+    spider-db:
+        image: mariadb:10.1
+        command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci --max-connections=1024
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: spider
+            MYSQL_PASSWORD: spider
+            MYSQL_DATABASE: spider
+        ports:
+            - 3503:3306
+    spider-mailhog:
+        image: mailhog/mailhog
+        ports:
+            - 8025:8025
